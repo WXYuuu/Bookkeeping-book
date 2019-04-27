@@ -1,0 +1,110 @@
+# Bookkeeping-book
+001
+
+可以参考下这个：
+ 
+        /// <summary>
+        /// 对密码进行MD5加密的函数
+        /// </summary>
+        /// <param name="Password"></param>
+        /// <returns></returns>
+        public static string getEncryPassword(string Password)
+        {
+            string EncryedPassword = FormsAuthentication.HashPasswordForStoringInConfigFile(
+                Password + "&%#@?$%)@%($)#_$)*", "md5"); // Or "sha1" 
+            return EncryedPassword;
+        }
+        /// <summary>
+        /// 加密
+        /// </summary>
+        /// <param name="strText"></param>
+        /// <returns></returns>
+        public static string EncryptText(String strText)
+        {
+            return Encrypt(strText, "&%#@?$%)@%($)#_$)*");
+            // return Encrypt(strText,DateTime.Now.ToString() );
+        }
+ 
+        /// <summary>
+        /// 解密
+        /// </summary>
+        /// <param name="strText"></param>
+        /// <returns></returns>
+        public static String DecryptText(String strText)
+        {
+            return Decrypt(strText, "&%#@?$%)@%($)#_$)*");
+            // return Decrypt(strText,DateTime.Now.ToString());
+        }
+ 
+ 
+        /// <summary>
+        /// 加密函数
+        /// </summary>
+        /// <param name="strText"></param>
+        /// <param name="strEncrKey"></param>
+        /// <returns></returns>
+        public static String Encrypt(String strText, String strEncrKey)
+        {
+            Byte[] byKey = { };
+            Byte[] IV = { 0x01, 0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF };
+            try
+            {
+                byKey = System.Text.Encoding.UTF8.GetBytes(strEncrKey.Substring(0, 8));
+                DESCryptoServiceProvider des = new DESCryptoServiceProvider();
+                Byte[] inputByteArray = Encoding.UTF8.GetBytes(strText);
+                MemoryStream ms = new MemoryStream();
+                CryptoStream cs = new CryptoStream(ms, des.CreateEncryptor(byKey, IV), CryptoStreamMode.Write);
+                cs.Write(inputByteArray, 0, inputByteArray.Length);
+                cs.FlushFinalBlock();
+                return Convert.ToBase64String(ms.ToArray());
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+ 
+        /// <summary>
+        /// 解密函数
+        /// </summary>
+        /// <param name="strText"></param>
+        /// <param name="sDecrKey"></param>
+        /// <returns></returns>
+        public static String Decrypt(String strText, String sDecrKey)
+        {
+ 
+            char[] stBase = strText.ToCharArray();
+            for (int i = 0; i < stBase.Length; i++)
+            {
+                if (stBase[i] == ' ')
+                {
+                    stBase[i] = '+';
+                }
+            }
+            strText = "";
+            for (int i = 0; i < stBase.Length; i++)
+            {
+                strText += stBase[i];
+            }
+            Byte[] byKey = { };
+            Byte[] IV = { 0x01, 0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF };
+            Byte[] inputByteArray = new byte[strText.Length];
+            try
+            {
+                byKey = System.Text.Encoding.UTF8.GetBytes(sDecrKey.Substring(0, 8));
+                DESCryptoServiceProvider des = new DESCryptoServiceProvider();
+ 
+                inputByteArray = Convert.FromBase64String(strText);
+ 
+                MemoryStream ms = new MemoryStream();
+                CryptoStream cs = new CryptoStream(ms, des.CreateDecryptor(byKey, IV), CryptoStreamMode.Write);
+                cs.Write(inputByteArray, 0, inputByteArray.Length);
+                cs.FlushFinalBlock();
+                System.Text.Encoding encoding = System.Text.Encoding.UTF8;
+                return encoding.GetString(ms.ToArray());
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
